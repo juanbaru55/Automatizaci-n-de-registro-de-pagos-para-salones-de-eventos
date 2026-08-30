@@ -1,0 +1,2654 @@
+{
+  "name": "ANSELPRUEBA",
+  "nodes": [
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Hoy es {{ $now.format('yyyy-MM-dd') }}. Este comprobante fue enviado por {{ $('Llega comprobante de pago a mail').item.json.from.value[0].address }}. Analizá la imagen adjunta y determiná si es un comprobante de pago (transferencia, depósito, recibo, ticket de pago, etc). Respondé ÚNICAMENTE con este JSON, sin texto adicional: {\"es_comprobante\": true o false, \"motivo\": \"breve explicación si no es un comprobante\", \"monto\": número o null, \"fecha\": \"YYYY-MM-DD\" o null, \"metodo\": \"Efectivo\" | \"Transferencia\" | \"Tarjeta\" | \"No identificado\"}",
+        "messages": {
+          "messageValues": [
+            {
+              "type": "HumanMessagePromptTemplate",
+              "messageType": "imageBinary",
+              "binaryImageDataKey": "attachment_0"
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        -32,
+        -208
+      ],
+      "id": "41d19f55-932e-40a9-bd53-dbe60f2c563f",
+      "name": "Basic LLM Chain",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e9cc07f9-8c44-48ad-9de4-a90ff48b4972",
+              "leftValue": "={{ $json.output.es_comprobante }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        592,
+        -224
+      ],
+      "id": "50206245-02d5-4e4b-8e12-c15f651090b5",
+      "name": "¿Es comprobante válido?"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {},
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -320,
+        -208
+      ],
+      "id": "d8bb4685-0225-4ab3-ae26-ef4a54c3eea2",
+      "name": "Llega comprobante de pago a mail",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QGqoTjpmQyjTa4ri",
+          "name": "anselprueba account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "messageId": "={{ $('Llega comprobante de pago a mail').item.json.id }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        784,
+        112
+      ],
+      "id": "4db23d12-ab92-4bdc-ba11-5f41ac4f18ed",
+      "name": "Delete a message",
+      "webhookId": "4a93e84d-a7a6-4477-84d2-085a1b64a98a",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QGqoTjpmQyjTa4ri",
+          "name": "anselprueba account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appoFhoQA5WIoJass",
+          "mode": "list",
+          "cachedResultName": "Gestión de Pagos de Eventos",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblfzzpIXmFQX5Auj",
+          "mode": "list",
+          "cachedResultName": "Eventos",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass/tblfzzpIXmFQX5Auj"
+        },
+        "filterByFormula": "={Email} = '{{ $('Llega comprobante de pago a mail').item.json.from.value[0].address }}'",
+        "returnAll": false,
+        "limit": 1,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        784,
+        -320
+      ],
+      "id": "17c6947d-e470-4adb-9508-a50c366c9250",
+      "name": "Buscar evento",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "VneSr12CSF4o7158",
+          "name": "juanbaru55 AT account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f100a894-c223-4232-8647-38d9c3f1e45c",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1008,
+        -320
+      ],
+      "id": "223c7f71-940f-44f8-b10f-140338b36fb6",
+      "name": "¿Evento encontrado?"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "8681274811",
+        "message": "=⚠️ Sin evento registrado para {{ $('Llega comprobante de pago a mail').first().json.from.value[0].address }}\n\nPago detectado: ${{ $('Simplificador de CODE').first().json.output.monto }} el {{ $('Simplificador de CODE').first().json.output.fecha }} ({{ $('Simplificador de CODE').first().json.output.metodo }})\n\n¿Creo el evento nuevo y registro el pago?",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1232,
+        176
+      ],
+      "id": "10b7e193-3b6f-4691-8878-fbec45d7d32e",
+      "name": "Evento no encontrado, ¿Aprobar evento nuevo?",
+      "webhookId": "3b621a06-ab39-4db9-9247-b6a81e9a54e6",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "telegramApi": {
+          "id": "ifvjTAVtljrcmYjh",
+          "name": "Anselprueba BOT"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "chatId": "8681274811",
+        "message": "=💰 Nuevo comprobante — {{ $('Buscar evento').first().json.fields['Cliente / Nombre del evento'] }}\nMonto: ${{ $('Simplificador de CODE').first().json.output.monto }}\nFecha: {{ $('Simplificador de CODE').first().json.output.fecha }}\nMétodo: {{ $('Simplificador de CODE').first().json.output.metodo }}\nSaldo pendiente actual: ${{ $('Buscar evento').first().json.fields['Saldo pendiente'] }}\n¿Confirmás el pago?",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1232,
+        -400
+      ],
+      "id": "eb43e9da-1dc6-44ea-9f3d-699fd8e12ff1",
+      "name": "Evento encontrado, ¿Agendar pago?",
+      "webhookId": "4afce02d-9154-4180-9733-5eed00c13649",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "telegramApi": {
+          "id": "ifvjTAVtljrcmYjh",
+          "name": "Anselprueba BOT"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9b610c0c-79eb-45d4-811e-4f500a054c04",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1456,
+        -416
+      ],
+      "id": "c10669a4-68a5-400f-849f-11bbcbdec49c",
+      "name": "¿Aproba el pago?"
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appoFhoQA5WIoJass",
+          "mode": "list",
+          "cachedResultName": "Gestión de Pagos de Eventos",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblfzzpIXmFQX5Auj",
+          "mode": "list",
+          "cachedResultName": "Eventos",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass/tblfzzpIXmFQX5Auj"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Monto total contratado": 0,
+            "Cliente / Nombre del evento": "⚠️ Sin identificar - revisar",
+            "Email": "={{ $('Llega comprobante de pago a mail').first().json.from.value[0].address }}",
+            "Estado del evento": "Confirmada",
+            "Estado del procesamiento": "Pendiente"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Cliente / Nombre del evento",
+              "displayName": "Cliente / Nombre del evento",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Monto total contratado",
+              "displayName": "Monto total contratado",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Estado del evento",
+              "displayName": "Estado del evento",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Confirmada",
+                  "value": "Confirmada"
+                },
+                {
+                  "name": "Señada",
+                  "value": "Señada"
+                },
+                {
+                  "name": "Pagada",
+                  "value": "Pagada"
+                },
+                {
+                  "name": "Cancelada",
+                  "value": "Cancelada"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Estado del procesamiento",
+              "displayName": "Estado del procesamiento",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Pendiente",
+                  "value": "Pendiente"
+                },
+                {
+                  "name": "Procesado por IA",
+                  "value": "Procesado por IA"
+                },
+                {
+                  "name": "Aprobado por Humano",
+                  "value": "Aprobado por Humano"
+                },
+                {
+                  "name": "Enviado",
+                  "value": "Enviado"
+                },
+                {
+                  "name": "Rechazado",
+                  "value": "Rechazado"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Saldo pendiente",
+              "displayName": "Saldo pendiente",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Pagos",
+              "displayName": "Pagos",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Total pagado",
+              "displayName": "Total pagado",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1696,
+        -48
+      ],
+      "id": "e5fbd046-5af8-48dc-b52c-986ca45501d4",
+      "name": "Crear evento nuevo",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "VneSr12CSF4o7158",
+          "name": "juanbaru55 AT account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c49068de-7dc2-4c15-870b-a895a6868f99",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1456,
+        176
+      ],
+      "id": "9b6c6d9d-c02c-4ec0-b246-a12244cc0aa3",
+      "name": "¿Crear evento nuevo?"
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appoFhoQA5WIoJass",
+          "mode": "list",
+          "cachedResultName": "Gestión de Pagos de Eventos",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblNUHHwIv0YES2jC",
+          "mode": "list",
+          "cachedResultName": "Pagos",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass/tblNUHHwIv0YES2jC"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Monto": "={{ $('Simplificador de CODE').first().json.output.monto }}",
+            "Fecha de pago": "={{ $('Simplificador de CODE').first().json.output.fecha }}",
+            "Método detectado por IA": "={{ $('Simplificador de CODE').first().json.output.metodo }}",
+            "Evento": "={{ [$('Crear evento nuevo').item.json.id] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Id",
+              "displayName": "Id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Monto",
+              "displayName": "Monto",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha de pago",
+              "displayName": "Fecha de pago",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Método detectado por IA",
+              "displayName": "Método detectado por IA",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Efectivo",
+                  "value": "Efectivo"
+                },
+                {
+                  "name": "Transferencia",
+                  "value": "Transferencia"
+                },
+                {
+                  "name": "Tarjeta",
+                  "value": "Tarjeta"
+                },
+                {
+                  "name": "Transferencia bancaria",
+                  "value": "Transferencia bancaria"
+                },
+                {
+                  "name": "Tarjeta de crédito",
+                  "value": "Tarjeta de crédito"
+                },
+                {
+                  "name": "Tarjeta de débito",
+                  "value": "Tarjeta de débito"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Evento",
+              "displayName": "Evento",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Comprobante ",
+              "displayName": "Comprobante ",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        2208,
+        -48
+      ],
+      "id": "5e3d4ddf-0f93-4ab3-98a7-3e32df41d971",
+      "name": "Crear pago: Evento nuevo",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "VneSr12CSF4o7158",
+          "name": "juanbaru55 AT account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appoFhoQA5WIoJass",
+          "mode": "list",
+          "cachedResultName": "Gestión de Pagos de Eventos",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblNUHHwIv0YES2jC",
+          "mode": "list",
+          "cachedResultName": "Pagos",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass/tblNUHHwIv0YES2jC"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Monto": "={{ $('Simplificador de CODE').first().json.output.monto }}",
+            "Fecha de pago": "={{ $('Simplificador de CODE').first().json.output.fecha }}",
+            "Método detectado por IA": "={{ $('Simplificador de CODE').first().json.output.metodo }}",
+            "Evento": "={{ [$('Buscar evento').first().json.id] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Id",
+              "displayName": "Id",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Monto",
+              "displayName": "Monto",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha de pago",
+              "displayName": "Fecha de pago",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Método detectado por IA",
+              "displayName": "Método detectado por IA",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Efectivo",
+                  "value": "Efectivo"
+                },
+                {
+                  "name": "Transferencia",
+                  "value": "Transferencia"
+                },
+                {
+                  "name": "Tarjeta",
+                  "value": "Tarjeta"
+                },
+                {
+                  "name": "Transferencia bancaria",
+                  "value": "Transferencia bancaria"
+                },
+                {
+                  "name": "Tarjeta de crédito",
+                  "value": "Tarjeta de crédito"
+                },
+                {
+                  "name": "Tarjeta de débito",
+                  "value": "Tarjeta de débito"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Evento",
+              "displayName": "Evento",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Comprobante ",
+              "displayName": "Comprobante ",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1728,
+        -608
+      ],
+      "id": "53fed5f7-6978-4491-b9be-cc7231ef339f",
+      "name": "Crear pago: Evento existente",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "VneSr12CSF4o7158",
+          "name": "juanbaru55 AT account"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "8681274811",
+        "text": "=✅ Pago registrado con éxito para {{ $('Buscar evento').item.json['Cliente / Nombre del evento'] }} (${{ $('Basic LLM Chain').item.json.output.monto }})",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1984,
+        -880
+      ],
+      "id": "ee21c1be-8f26-4f65-b522-36da3c13efcf",
+      "name": "Msj. Confirmación (Evento existente)",
+      "webhookId": "d63a3730-3e2f-41c3-9624-c43dc63ec012",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "telegramApi": {
+          "id": "ifvjTAVtljrcmYjh",
+          "name": "Anselprueba BOT"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "8681274811",
+        "text": "✅ Evento y pago registrados con éxito. Recordá completar el nombre real del cliente en Airtable.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2736,
+        -48
+      ],
+      "id": "e985b8c5-918d-47fe-9804-c9df67c31dd3",
+      "name": "Msj. Confirmación (Evento nuevo)",
+      "webhookId": "d63a3730-3e2f-41c3-9624-c43dc63ec012",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "telegramApi": {
+          "id": "ifvjTAVtljrcmYjh",
+          "name": "Anselprueba BOT"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "8681274811",
+        "text": "🗑️ Pago descartado, no se registró nada.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1728,
+        -400
+      ],
+      "id": "37c2c7eb-99e5-4e43-ab09-8b184fb91c3d",
+      "name": "Msj. Rechazo (Evento existente)",
+      "webhookId": "d63a3730-3e2f-41c3-9624-c43dc63ec012",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "telegramApi": {
+          "id": "ifvjTAVtljrcmYjh",
+          "name": "Anselprueba BOT"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "8681274811",
+        "text": "🗑️ Descartado, no se creó ningún registro.",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1696,
+        448
+      ],
+      "id": "64dea433-643b-40cb-a6a2-ba8e5989f238",
+      "name": "Msj. Rechazo (Evento nuevo)",
+      "webhookId": "e25689f0-0955-42f9-836a-1811312ec6b1",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "telegramApi": {
+          "id": "ifvjTAVtljrcmYjh",
+          "name": "Anselprueba BOT"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "chatId": "8681274811",
+        "text": "=🚨 Error en el flujo de pagos  Nodo: IA (Basic LLM Chain) Motivo: {{ $json.error?.message || 'Sin detalle' }} Ejecución: {{ $execution.id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        112,
+        32
+      ],
+      "id": "b4da8834-c7cc-44df-ac03-f5a69ddb0eb0",
+      "name": "Telegram: alertar error (IA)",
+      "webhookId": "87971499-80fb-4dd1-ad3a-6d631b248a73",
+      "credentials": {
+        "telegramApi": {
+          "id": "ifvjTAVtljrcmYjh",
+          "name": "Anselprueba BOT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "8681274811",
+        "text": "=🚨 Error en el flujo de pagos\n\nNodo: Buscar evento (Airtable)\nMotivo: {{ $json.error?.message || 'Sin detalle' }}\nEjecución: {{ $execution.id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        784,
+        -112
+      ],
+      "id": "15b1a0e6-b988-40ac-a0cb-82c38386aed5",
+      "name": "Telegram: alertar error (BE)",
+      "webhookId": "87971499-80fb-4dd1-ad3a-6d631b248a73",
+      "credentials": {
+        "telegramApi": {
+          "id": "ifvjTAVtljrcmYjh",
+          "name": "Anselprueba BOT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "8681274811",
+        "text": "=🚨 Error en el flujo de pagos\n\nNodo: Delete a message (Gmail)\nMotivo: {{ $json.error?.message || 'Sin detalle' }}\nEjecución: {{ $execution.id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        784,
+        320
+      ],
+      "id": "23947fd2-8880-4890-ad7a-6b19ce494f4e",
+      "name": "Telegram: alertar error (DM)",
+      "webhookId": "87971499-80fb-4dd1-ad3a-6d631b248a73",
+      "credentials": {
+        "telegramApi": {
+          "id": "ifvjTAVtljrcmYjh",
+          "name": "Anselprueba BOT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "8681274811",
+        "text": "=🚨 Error en el flujo de pagos\n\nNodo: Evento encontrado, ¿Agendar pago? (Telegram)\nMotivo: {{ $json.error?.message || 'Sin detalle' }}\nEjecución: {{ $execution.id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1248,
+        -160
+      ],
+      "id": "d3ee2868-d56d-4edd-b76f-d70fc3ef342f",
+      "name": "Telegram: alertar error (EvE)",
+      "webhookId": "87971499-80fb-4dd1-ad3a-6d631b248a73",
+      "credentials": {
+        "telegramApi": {
+          "id": "ifvjTAVtljrcmYjh",
+          "name": "Anselprueba BOT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "8681274811",
+        "text": "=🚨 Error en el flujo de pagos\n\nNodo: Evento no encontrado, ¿Aprobar evento nuevo? (Telegram)\nMotivo: {{ $json.error?.message || 'Sin detalle' }}\nEjecución: {{ $execution.id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1232,
+        432
+      ],
+      "id": "7a194108-c4e4-4a20-a2e8-641ed094bdd9",
+      "name": "Telegram: alertar error (EvNE)",
+      "webhookId": "87971499-80fb-4dd1-ad3a-6d631b248a73",
+      "credentials": {
+        "telegramApi": {
+          "id": "ifvjTAVtljrcmYjh",
+          "name": "Anselprueba BOT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "8681274811",
+        "text": "=🚨 Error en el flujo de pagos\n\nNodo: Crear pago - Evento existente (Airtable)\nMotivo: {{ $json.error?.message || 'Sin detalle' }}\nEjecución: {{ $execution.id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1984,
+        -592
+      ],
+      "id": "e0f225a9-b7d3-487f-a3f7-0e53480b5944",
+      "name": "Telegram: alertar error (CPEE)",
+      "webhookId": "87971499-80fb-4dd1-ad3a-6d631b248a73",
+      "credentials": {
+        "telegramApi": {
+          "id": "ifvjTAVtljrcmYjh",
+          "name": "Anselprueba BOT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "8681274811",
+        "text": "=🚨 Error en el flujo de pagos\n\nNodo: Msj. Rechazo - Evento existente (Telegram)\nMotivo: {{ $json.error?.message || 'Sin detalle' }}\nEjecución: {{ $execution.id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1984,
+        -384
+      ],
+      "id": "ba0fd3af-8291-4597-b80e-9964cf834e22",
+      "name": "Telegram: alertar error (MREE)",
+      "webhookId": "87971499-80fb-4dd1-ad3a-6d631b248a73",
+      "credentials": {
+        "telegramApi": {
+          "id": "ifvjTAVtljrcmYjh",
+          "name": "Anselprueba BOT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "8681274811",
+        "text": "=🚨 Error en el flujo de pagos\n\nNodo: Crear evento nuevo (Airtable)\nMotivo: {{ $json.error?.message || 'Sin detalle' }}\nEjecución: {{ $execution.id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1696,
+        208
+      ],
+      "id": "fec9ed72-c98b-4908-bcf1-798df38d3e3a",
+      "name": "Telegram: alertar error (CEN)",
+      "webhookId": "87971499-80fb-4dd1-ad3a-6d631b248a73",
+      "credentials": {
+        "telegramApi": {
+          "id": "ifvjTAVtljrcmYjh",
+          "name": "Anselprueba BOT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "8681274811",
+        "text": "=🚨 Error en el flujo de pagos\n\nNodo: Crear pago - Evento nuevo (Airtable)\nMotivo: {{ $json.error?.message || 'Sin detalle' }}\nEjecución: {{ $execution.id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2208,
+        208
+      ],
+      "id": "34bf4fca-9746-4ece-a5c9-da9e9a2b2aaf",
+      "name": "Telegram: alertar error (CPEN)",
+      "webhookId": "87971499-80fb-4dd1-ad3a-6d631b248a73",
+      "credentials": {
+        "telegramApi": {
+          "id": "ifvjTAVtljrcmYjh",
+          "name": "Anselprueba BOT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "8681274811",
+        "text": "=🚨 Error en el flujo de pagos\n\nNodo: Msj. Confirmación - Evento nuevo (Telegram)\nMotivo: {{ $json.error?.message || 'Sin detalle' }}\nEjecución: {{ $execution.id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2736,
+        208
+      ],
+      "id": "5fd0fce6-011e-4c34-b02e-901c84507c4f",
+      "name": "Telegram: alertar error (MCEN)",
+      "webhookId": "87971499-80fb-4dd1-ad3a-6d631b248a73",
+      "credentials": {
+        "telegramApi": {
+          "id": "ifvjTAVtljrcmYjh",
+          "name": "Anselprueba BOT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "8681274811",
+        "text": "=🚨 Error en el flujo de pagos\n\nNodo: Msj. Rechazo - Evento nuevo (Telegram)\nMotivo: {{ $json.error?.message || 'Sin detalle' }}\nEjecución: {{ $execution.id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1696,
+        672
+      ],
+      "id": "48eea447-c52c-40f8-bd13-fc1a4878905e",
+      "name": "Telegram: alertar error (MREN)",
+      "webhookId": "87971499-80fb-4dd1-ad3a-6d631b248a73",
+      "credentials": {
+        "telegramApi": {
+          "id": "ifvjTAVtljrcmYjh",
+          "name": "Anselprueba BOT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "8681274811",
+        "text": "=🚨 Error en el flujo de pagos\n\nNodo: Msj. Confirmación - Evento existente (Telegram)\nMotivo: {{ $json.error?.message || 'Sin detalle' }}\nEjecución: {{ $execution.id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        2304,
+        -864
+      ],
+      "id": "3c44cb4c-0e67-48d4-825a-4faac08f2977",
+      "name": "Telegram: alertar error (MCEE)",
+      "webhookId": "87971499-80fb-4dd1-ad3a-6d631b248a73",
+      "credentials": {
+        "telegramApi": {
+          "id": "ifvjTAVtljrcmYjh",
+          "name": "Anselprueba BOT"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appoFhoQA5WIoJass",
+          "mode": "list",
+          "cachedResultName": "Gestión de Pagos de Eventos",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblSfP7XbWI1S3nQX",
+          "mode": "list",
+          "cachedResultName": "Errores",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass/tblSfP7XbWI1S3nQX"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Nodo": "Basic LLM Chain",
+            "Fecha": "={{ $now }}",
+            "Motivo": "={{ $json.error?.message || 'Sin detalle' }}",
+            "ID de ejecución": "={{ $execution.id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Nodo",
+              "displayName": "Nodo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Motivo",
+              "displayName": "Motivo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ID de ejecución",
+              "displayName": "ID de ejecución",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        976,
+        -112
+      ],
+      "id": "d098b52c-b030-43d6-bc5f-2c68258dabbf",
+      "name": "Crear registro en Airtable",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "VneSr12CSF4o7158",
+          "name": "juanbaru55 AT account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appoFhoQA5WIoJass",
+          "mode": "list",
+          "cachedResultName": "Gestión de Pagos de Eventos",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblSfP7XbWI1S3nQX",
+          "mode": "list",
+          "cachedResultName": "Errores",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass/tblSfP7XbWI1S3nQX"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Fecha": "={{ $now }}",
+            "Motivo": "={{ $json.error?.message || 'Sin detalle' }}",
+            "ID de ejecución": "={{ $execution.id }}",
+            "Nodo": "Delete a message (Gmail)"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Nodo",
+              "displayName": "Nodo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Motivo",
+              "displayName": "Motivo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ID de ejecución",
+              "displayName": "ID de ejecución",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        976,
+        320
+      ],
+      "id": "ed5723c9-21d2-488c-8d06-11a39119425e",
+      "name": "Crear registro en Airtable1",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "VneSr12CSF4o7158",
+          "name": "juanbaru55 AT account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appoFhoQA5WIoJass",
+          "mode": "list",
+          "cachedResultName": "Gestión de Pagos de Eventos",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblSfP7XbWI1S3nQX",
+          "mode": "list",
+          "cachedResultName": "Errores",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass/tblSfP7XbWI1S3nQX"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Fecha": "={{ $now }}",
+            "Motivo": "={{ $json.error?.message || 'Sin detalle' }}",
+            "ID de ejecución": "={{ $execution.id }}",
+            "Nodo": "Evento encontrado, ¿Agendar pago? (Telegram)"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Nodo",
+              "displayName": "Nodo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Motivo",
+              "displayName": "Motivo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ID de ejecución",
+              "displayName": "ID de ejecución",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1440,
+        -160
+      ],
+      "id": "36b1a648-2fa6-4a03-9efd-0e1819937caa",
+      "name": "Crear registro en Airtable2",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "VneSr12CSF4o7158",
+          "name": "juanbaru55 AT account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appoFhoQA5WIoJass",
+          "mode": "list",
+          "cachedResultName": "Gestión de Pagos de Eventos",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblSfP7XbWI1S3nQX",
+          "mode": "list",
+          "cachedResultName": "Errores",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass/tblSfP7XbWI1S3nQX"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Fecha": "={{ $now }}",
+            "Motivo": "={{ $json.error?.message || 'Sin detalle' }}",
+            "ID de ejecución": "={{ $execution.id }}",
+            "Nodo": "Evento no encontrado, ¿Aprobar evento nuevo? (Telegram)"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Nodo",
+              "displayName": "Nodo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Motivo",
+              "displayName": "Motivo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ID de ejecución",
+              "displayName": "ID de ejecución",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1424,
+        432
+      ],
+      "id": "d4a9d4c6-add6-4b63-98df-f74041488a0d",
+      "name": "Crear registro en Airtable3",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "VneSr12CSF4o7158",
+          "name": "juanbaru55 AT account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appoFhoQA5WIoJass",
+          "mode": "list",
+          "cachedResultName": "Gestión de Pagos de Eventos",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblSfP7XbWI1S3nQX",
+          "mode": "list",
+          "cachedResultName": "Errores",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass/tblSfP7XbWI1S3nQX"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Fecha": "={{ $now }}",
+            "Motivo": "={{ $json.error?.message || 'Sin detalle' }}",
+            "ID de ejecución": "={{ $execution.id }}",
+            "Nodo": "Crear pago - Evento existente (Airtable)"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Nodo",
+              "displayName": "Nodo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Motivo",
+              "displayName": "Motivo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ID de ejecución",
+              "displayName": "ID de ejecución",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        2176,
+        -592
+      ],
+      "id": "d6ba9d4e-5beb-46c0-b04d-a9e520a1450a",
+      "name": "Crear registro en Airtable4",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "VneSr12CSF4o7158",
+          "name": "juanbaru55 AT account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appoFhoQA5WIoJass",
+          "mode": "list",
+          "cachedResultName": "Gestión de Pagos de Eventos",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblSfP7XbWI1S3nQX",
+          "mode": "list",
+          "cachedResultName": "Errores",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass/tblSfP7XbWI1S3nQX"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Fecha": "={{ $now }}",
+            "Motivo": "={{ $json.error?.message || 'Sin detalle' }}",
+            "ID de ejecución": "={{ $execution.id }}",
+            "Nodo": "Msj. Rechazo - Evento existente (Telegram)"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Nodo",
+              "displayName": "Nodo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Motivo",
+              "displayName": "Motivo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ID de ejecución",
+              "displayName": "ID de ejecución",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        2176,
+        -384
+      ],
+      "id": "ebacd1fa-1d3d-4046-9de8-e134c3228079",
+      "name": "Crear registro en Airtable5",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "VneSr12CSF4o7158",
+          "name": "juanbaru55 AT account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appoFhoQA5WIoJass",
+          "mode": "list",
+          "cachedResultName": "Gestión de Pagos de Eventos",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblSfP7XbWI1S3nQX",
+          "mode": "list",
+          "cachedResultName": "Errores",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass/tblSfP7XbWI1S3nQX"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Fecha": "={{ $now }}",
+            "Motivo": "={{ $json.error?.message || 'Sin detalle' }}",
+            "ID de ejecución": "={{ $execution.id }}",
+            "Nodo": "Crear pago - Evento nuevo (Airtable)"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Nodo",
+              "displayName": "Nodo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Motivo",
+              "displayName": "Motivo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ID de ejecución",
+              "displayName": "ID de ejecución",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        2448,
+        208
+      ],
+      "id": "b0daf66f-60db-4574-bf79-62aaf366a75c",
+      "name": "Crear registro en Airtable7",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "VneSr12CSF4o7158",
+          "name": "juanbaru55 AT account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appoFhoQA5WIoJass",
+          "mode": "list",
+          "cachedResultName": "Gestión de Pagos de Eventos",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblSfP7XbWI1S3nQX",
+          "mode": "list",
+          "cachedResultName": "Errores",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass/tblSfP7XbWI1S3nQX"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Fecha": "={{ $now }}",
+            "Motivo": "={{ $json.error?.message || 'Sin detalle' }}",
+            "ID de ejecución": "={{ $execution.id }}",
+            "Nodo": "Crear evento nuevo (Airtable)"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Nodo",
+              "displayName": "Nodo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Motivo",
+              "displayName": "Motivo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ID de ejecución",
+              "displayName": "ID de ejecución",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1888,
+        208
+      ],
+      "id": "4d5f6fae-57b6-42ed-b990-83108332e516",
+      "name": "Crear registro en Airtable6",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "VneSr12CSF4o7158",
+          "name": "juanbaru55 AT account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appoFhoQA5WIoJass",
+          "mode": "list",
+          "cachedResultName": "Gestión de Pagos de Eventos",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblSfP7XbWI1S3nQX",
+          "mode": "list",
+          "cachedResultName": "Errores",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass/tblSfP7XbWI1S3nQX"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Fecha": "={{ $now }}",
+            "Motivo": "={{ $json.error?.message || 'Sin detalle' }}",
+            "ID de ejecución": "={{ $execution.id }}",
+            "Nodo": "Msj. Confirmación - Evento existente (Telegram)"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Nodo",
+              "displayName": "Nodo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Motivo",
+              "displayName": "Motivo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ID de ejecución",
+              "displayName": "ID de ejecución",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        2496,
+        -864
+      ],
+      "id": "362518af-9bf7-4346-89eb-e810bc757523",
+      "name": "Crear registro en Airtable8",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "VneSr12CSF4o7158",
+          "name": "juanbaru55 AT account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appoFhoQA5WIoJass",
+          "mode": "list",
+          "cachedResultName": "Gestión de Pagos de Eventos",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblSfP7XbWI1S3nQX",
+          "mode": "list",
+          "cachedResultName": "Errores",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass/tblSfP7XbWI1S3nQX"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Fecha": "={{ $now }}",
+            "Motivo": "={{ $json.error?.message || 'Sin detalle' }}",
+            "ID de ejecución": "={{ $execution.id }}",
+            "Nodo": "Msj. Confirmación - Evento nuevo (Telegram)"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Nodo",
+              "displayName": "Nodo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Motivo",
+              "displayName": "Motivo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ID de ejecución",
+              "displayName": "ID de ejecución",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        2928,
+        208
+      ],
+      "id": "5f91334d-a886-4d83-b6b6-3b6c9bba9753",
+      "name": "Crear registro en Airtable9",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "VneSr12CSF4o7158",
+          "name": "juanbaru55 AT account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appoFhoQA5WIoJass",
+          "mode": "list",
+          "cachedResultName": "Gestión de Pagos de Eventos",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblSfP7XbWI1S3nQX",
+          "mode": "list",
+          "cachedResultName": "Errores",
+          "cachedResultUrl": "https://airtable.com/appoFhoQA5WIoJass/tblSfP7XbWI1S3nQX"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Fecha": "={{ $now }}",
+            "Motivo": "={{ $json.error?.message || 'Sin detalle' }}",
+            "ID de ejecución": "={{ $execution.id }}",
+            "Nodo": "Msj. Rechazo - Evento nuevo (Telegram)"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Nodo",
+              "displayName": "Nodo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Motivo",
+              "displayName": "Motivo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ID de ejecución",
+              "displayName": "ID de ejecución",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1888,
+        672
+      ],
+      "id": "f16b6704-f8b1-431c-bfbf-01646b61ce17",
+      "name": "Crear registro en Airtable10",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "VneSr12CSF4o7158",
+          "name": "juanbaru55 AT account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelName": "models/gemini-3.5-flash-lite",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -128,
+        0
+      ],
+      "id": "23ebc7f5-b1b0-47db-af83-3900459c99ab",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "s78MRDT4eUdA5K2g",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "let raw = $json.text || $json.output || '';\n\n// Si vino como objeto ya parseado, lo usamos directo\nif (typeof raw === 'object') {\n  return { json: { output: raw } };\n}\n\n// Si vino como texto, le sacamos los ```json y ``` de los costados\nlet clean = raw.replace(/```json/g, '').replace(/```/g, '').trim();\n\nlet parsed;\ntry {\n  parsed = JSON.parse(clean);\n} catch (e) {\n  parsed = { es_comprobante: false, motivo: 'No se pudo interpretar la respuesta de la IA', monto: null, fecha: null, metodo: 'No identificado' };\n}\n\nreturn { json: { output: parsed } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        336,
+        -224
+      ],
+      "id": "defae3c6-7c48-4093-ad9c-37a1176dda66",
+      "name": "Simplificador de CODE"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Simplificador de CODE",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram: alertar error (IA)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Llega comprobante de pago a mail": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Es comprobante válido?": {
+      "main": [
+        [
+          {
+            "node": "Buscar evento",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Delete a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar evento": {
+      "main": [
+        [
+          {
+            "node": "¿Evento encontrado?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram: alertar error (BE)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Evento encontrado?": {
+      "main": [
+        [
+          {
+            "node": "Evento encontrado, ¿Agendar pago?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Evento no encontrado, ¿Aprobar evento nuevo?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evento no encontrado, ¿Aprobar evento nuevo?": {
+      "main": [
+        [
+          {
+            "node": "¿Crear evento nuevo?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram: alertar error (EvNE)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evento encontrado, ¿Agendar pago?": {
+      "main": [
+        [
+          {
+            "node": "¿Aproba el pago?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram: alertar error (EvE)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Aproba el pago?": {
+      "main": [
+        [
+          {
+            "node": "Crear pago: Evento existente",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Msj. Rechazo (Evento existente)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear evento nuevo": {
+      "main": [
+        [
+          {
+            "node": "Crear pago: Evento nuevo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram: alertar error (CEN)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Crear evento nuevo?": {
+      "main": [
+        [
+          {
+            "node": "Crear evento nuevo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Msj. Rechazo (Evento nuevo)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear pago: Evento existente": {
+      "main": [
+        [
+          {
+            "node": "Msj. Confirmación (Evento existente)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram: alertar error (CPEE)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear pago: Evento nuevo": {
+      "main": [
+        [
+          {
+            "node": "Msj. Confirmación (Evento nuevo)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Telegram: alertar error (CPEN)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete a message": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Telegram: alertar error (DM)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Msj. Rechazo (Evento existente)": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Telegram: alertar error (MREE)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Msj. Rechazo (Evento nuevo)": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Telegram: alertar error (MREN)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Msj. Confirmación (Evento nuevo)": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Telegram: alertar error (MCEN)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Msj. Confirmación (Evento existente)": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Telegram: alertar error (MCEE)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram: alertar error (BE)": {
+      "main": [
+        [
+          {
+            "node": "Crear registro en Airtable",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram: alertar error (DM)": {
+      "main": [
+        [
+          {
+            "node": "Crear registro en Airtable1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram: alertar error (EvE)": {
+      "main": [
+        [
+          {
+            "node": "Crear registro en Airtable2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram: alertar error (EvNE)": {
+      "main": [
+        [
+          {
+            "node": "Crear registro en Airtable3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram: alertar error (CPEE)": {
+      "main": [
+        [
+          {
+            "node": "Crear registro en Airtable4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram: alertar error (CPEN)": {
+      "main": [
+        [
+          {
+            "node": "Crear registro en Airtable7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram: alertar error (CEN)": {
+      "main": [
+        [
+          {
+            "node": "Crear registro en Airtable6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram: alertar error (MCEE)": {
+      "main": [
+        [
+          {
+            "node": "Crear registro en Airtable8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram: alertar error (MREE)": {
+      "main": [
+        [
+          {
+            "node": "Crear registro en Airtable5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram: alertar error (MCEN)": {
+      "main": [
+        [
+          {
+            "node": "Crear registro en Airtable9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram: alertar error (MREN)": {
+      "main": [
+        [
+          {
+            "node": "Crear registro en Airtable10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simplificador de CODE": {
+      "main": [
+        [
+          {
+            "node": "¿Es comprobante válido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6c4f05e8-dba6-4dfe-b71c-98d78c093bde",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "29469c00e54447743dbbd9a9fb8bff67d645fc1b667b3db4bd32faf4644f7fac"
+  },
+  "nodeGroups": [],
+  "id": "gXX9TAet6ij1LVXJ",
+  "tags": []
+}
