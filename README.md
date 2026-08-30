@@ -41,7 +41,7 @@ Los nodos críticos (llamadas a la IA, Airtable y Telegram) tienen reintentos au
 
 - **Base de datos completa (solo lectura):** https://airtable.com/appoFhoQA5WIoJass/shrjfETvnBDX5Ud5S
 - **Dashboard de Control:** no disponible como link en vivo (requiere plan pago de Airtable para compartir la Interface). Ver capturas en `evidencia/Dashboard de Control.pdf`.
-- **Video demo:** *[completar con el link una vez subido]*
+- **Video demo:** https://youtu.be/CyNzgBCDekY
 
 ## Alcance conocido
 
